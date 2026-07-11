@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=clipboard remove
+Comment=
+Exec=/home/l/clipboard_remove.sh
+Icon=text-x-script
+Path=
+Terminal=false
+StartupNotify=false
