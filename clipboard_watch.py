@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
-import subprocess
-import time
-import sys
 import os
+import sys
+import time
+import subprocess
 
-OUTPUT_FILE = os.path.expanduser("~/clipboard_log.txt")
-POLL_INTERVAL = 1.0
+OUTPUT_FILE = os.path.expanduser("~/Desktop/copy_log.txt")
+POLL_INTERVAL = 2.0
 SEPARATOR = "\n\n"
 
 def get_clipboard():
-    result = subprocess.run(
-        ["xclip", "-selection", "clipboard", "-o"],
-        capture_output=True,
-        text=True
-    )
+    result = subprocess.run( ["xclip", "-selection", "clipboard", "-o"], capture_output=True, text=True)
     if result.returncode != 0:
         return None
     return result.stdout
@@ -31,7 +27,7 @@ def append_to_file(text):
         f.write(text)
 
 def watch_clipboard():
-    print(f"Watching clipboard, appending to {OUTPUT_FILE}")
+    print(f"Watching clipboard, appending to {OUTPUT_FILE}.")
     print("Press Ctrl+C to stop.")
     last_content = normalize(get_clipboard() or "")
     while True:
