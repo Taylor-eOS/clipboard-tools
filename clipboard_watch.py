@@ -4,9 +4,20 @@ import sys
 import time
 import subprocess
 
-OUTPUT_FILE = os.path.expanduser("~/Desktop/copy_log.txt")
-POLL_INTERVAL = 2.0
+OUTPUT_DIR = os.path.expanduser("~/Desktop")
+OUTPUT_BASENAME = "copy_log"
+POLL_INTERVAL = 1.0
 SEPARATOR = "\n\n"
+LABEL_MODE = len(sys.argv) > 1
+LABELS = ["---\n\nUser:", "---\n\nAssistant:"]
+
+def get_output_file():
+    counter = 1
+    while True:
+        candidate = os.path.join(OUTPUT_DIR, f"{OUTPUT_BASENAME}_{counter}.txt")
+        if not os.path.exists(candidate):
+            return candidate
+        counter += 1
 
 def get_clipboard():
     result = subprocess.run( ["xclip", "-selection", "clipboard", "-o"], capture_output=True, text=True)
@@ -19,17 +30,23 @@ def normalize(text):
     lines = [line for line in lines if line.strip() != ""]
     return "\n".join(lines).strip()
 
-def append_to_file(text):
-    file_exists = os.path.exists(OUTPUT_FILE)
-    with open(OUTPUT_FILE, "a", encoding="utf-8") as f:
-        if file_exists and os.path.getsize(OUTPUT_FILE) > 0:
+def append_to_file(output_file, text, label_index):
+    file_exists = os.path.exists(output_file)
+    with open(output_file, "a", encoding="utf-8") as f:
+        if file_exists and os.path.getsize(output_file) > 0:
             f.write(SEPARATOR)
+        if LABEL_MODE:
+            f.write(LABELS[label_index] + "\n")
         f.write(text)
 
 def watch_clipboard():
-    print(f"Watching clipboard, appending to {OUTPUT_FILE}.")
+    output_file = get_output_file()
+    print(f"Watching clipboard, appending to {output_file}.")
+    if LABEL_MODE:
+        print("Label mode on.")
     print("Press Ctrl+C to stop.")
     last_content = normalize(get_clipboard() or "")
+    label_index = 0
     while True:
         time.sleep(POLL_INTERVAL)
         current_raw = get_clipboard()
@@ -37,9 +54,10 @@ def watch_clipboard():
             continue
         current = normalize(current_raw)
         if current and current != last_content:
-            append_to_file(current)
+            append_to_file(output_file, current, label_index)
             print(f"Appended {len(current)} chars.")
             last_content = current
+            label_index = 1 - label_index
 
 def main():
     try:
